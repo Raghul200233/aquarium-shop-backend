@@ -13,39 +13,50 @@ const razorpay = new Razorpay({
 // @access  Private
 exports.createOrder = async (req, res, next) => {
   try {
-    const {
-      items,
-      shippingAddress,
-      paymentMethod,
-      notes,
-      subtotal,
-      totalAmount
-    } = req.body;
+    const { items, shippingAddress, paymentMethod, paymentStatus, notes, subtotal, totalAmount, orderStatus } = req.body;
 
-    // Calculate shipping (free over ₹999)
-    const shipping = subtotal > 999 ? 0 : 99;
+    // Validate items and stock
+    for (const item of items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product ${item.product} not found`
+        });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}`
+        });
+      }
+    }
 
+    // Create order
     const order = await Order.create({
       user: req.user.id,
       items,
       shippingAddress,
       paymentMethod,
+      paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Pending',
       notes,
       subtotal,
-      shipping,
       totalAmount,
-      status: paymentMethod === 'COD' ? 'pending' : 'processing'
+      orderStatus: orderStatus || 'Processing'
     });
 
-    // Populate product details
-    await order.populate('items.product', 'name price images');
+    // Update stock
+    for (const item of items) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
 
     res.status(201).json({
       success: true,
       order
     });
   } catch (error) {
-    console.error('Error creating order:', error);
     next(error);
   }
 };
