@@ -19,7 +19,10 @@ const productSchema = new mongoose.Schema({
       'Planted Tank Lights',
       'Live Fishes',
       'Aquarium Accessories',
-      'Aquarium Stones and Sands'
+      'Aquarium Stones and Sands',
+      'Dog Foods',
+      'Cat Foods',
+      'Pet Accessories'
     ]
   },
   description: {
@@ -65,5 +68,9 @@ const productSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+productSchema.index({ name: 'text', description: 'text' });
+productSchema.index({ category: 1 });
+productSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Product', productSchema);
