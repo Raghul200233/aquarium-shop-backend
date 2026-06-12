@@ -55,6 +55,11 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  specifications: {
+    type: Map,
+    of: String,
+    default: {}
+  },
   createdAt: {
     type: Date,
     default: Date.now
