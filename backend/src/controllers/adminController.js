@@ -147,12 +147,8 @@ exports.getAllOrders = async (req, res, next) => {
 exports.updateOrderStatus = async (req, res, next) => {
   try {
     const { orderStatus } = req.body;
-    
-    console.log('Updating order:', req.params.id);
-    console.log('New status:', orderStatus);
 
     const order = await Order.findById(req.params.id);
-    
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -161,22 +157,17 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
 
     order.orderStatus = orderStatus;
-    
-    // If delivered, set delivered date
     if (orderStatus === 'Delivered') {
       order.deliveredAt = Date.now();
     }
-    
-    await order.save();
 
-    console.log('Order updated successfully:', order);
+    await order.save();
 
     res.status(200).json({
       success: true,
       order
     });
   } catch (error) {
-    console.error('Error updating order status:', error);
     next(error);
   }
 };
